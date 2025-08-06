@@ -1,0 +1,35 @@
+networks:
+  listtick-network:
+    external: true
+
+services:
+  keycloak:
+    image: pjatksuml/listtick-keycloak
+    container_name: listtick-keycloak
+    command: start-dev
+    ports:
+      - "8090:8080"
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://listtick-db:5432/keycloak
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USERNAME}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KEYCLOAK_EVENTS_ENABLED: "true"
+      KC_SPI_EVENTS_LISTENER: "custom-registration-listener"
+    networks:
+      - listtick-network
+  listtick:
+    image: pjatksuml/listtick-backend
+    container_name: listtick-backend
+    networks:
+      - listtick-network
+
+  frontend:
+    image: pjatksuml/listtick-frontend
+    container_name: listtick-frontend
+    ports:
+      - "5173:80"
+    networks:
+      - listtick-network
