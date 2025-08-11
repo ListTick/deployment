@@ -32,6 +32,14 @@ services:
 
   listtick:
     image: pjatksuml/listtick-backend:latest
+    volumes:
+      - /home/ec2-user/app/kc-certs/keycloak-ca.pem:/opt/certs/keycloak-ca.pem:ro
+    environment:
+      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/tmp/truststore.jks -Djavax.net.ssl.trustStorePassword=changeit
+    entrypoint: [ "/bin/sh","-c",
+      "keytool -importcert -noprompt -alias keycloak-ca -file /opt/certs/keycloak-ca.pem -keystore /tmp/truststore.jks -storepass changeit && \
+       exec java -jar /app/app.jar --spring.profiles.active=prod"
+    ]
     networks:
       listtick-network:
         aliases:
