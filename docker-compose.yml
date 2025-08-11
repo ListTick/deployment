@@ -4,32 +4,47 @@ networks:
 
 services:
   keycloak:
-    image: pjatksuml/listtick-keycloak
-    container_name: listtick-keycloak
-    command: start-dev
-    ports:
-      - "8090:8080"
+    image: pjatksuml/listtick-keycloak:latest
+    command: ["start", "--https-port=8443"]
     environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD}
+
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://listtick-db:5432/keycloak
       KC_DB_USERNAME: ${KEYCLOAK_DB_USERNAME}
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
-      KEYCLOAK_EVENTS_ENABLED: "true"
-      KC_SPI_EVENTS_LISTENER: "custom-registration-listener"
+
+      KC_PROXY: edge
+      KC_HOSTNAME: ${PUBLIC_HOST}
+      KC_HOSTNAME_STRICT: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "true"
+      KC_HTTP_RELATIVE_PATH: /auth
+
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/tls/tls.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/tls/tls.key
+    volumes:
+      - /home/ec2-user/app/kc-certs:/opt/keycloak/tls:ro
     networks:
-      - listtick-network
+      listtick-network:
+        aliases:
+          - keycloak
+
   listtick:
-    image: pjatksuml/listtick-backend
-    container_name: listtick-backend
+    image: pjatksuml/listtick-backend:latest
     networks:
-      - listtick-network
+      listtick-network:
+        aliases:
+          - listtick
 
   frontend:
-    image: pjatksuml/listtick-frontend
-    container_name: listtick-frontend
+    image: pjatksuml/listtick-frontend:latest
     ports:
-      - "5173:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /home/ec2-user/app/nginx:/etc/nginx/conf.d:ro
+      - /home/ec2-user/app/frontend-certs/tls.crt:/etc/nginx/certs/tls.crt:ro
+      - /home/ec2-user/app/frontend-certs/tls.key:/etc/nginx/certs/tls.key:ro
     networks:
       - listtick-network
