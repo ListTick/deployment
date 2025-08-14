@@ -12,8 +12,8 @@ services:
 
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://listtick-db:5432/keycloak
-      KC_DB_USERNAME: ${KEYCLOAK_DB_USERNAME}
-      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: admin
 
       KC_PROXY: edge
       KC_HOSTNAME: ${PUBLIC_HOST}
